@@ -1,4 +1,4 @@
-package deb
+package fields
 
 import (
 	"bytes"
