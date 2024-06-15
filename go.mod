@@ -1,10 +1,13 @@
 module github.com/aol-nnov/debian
 
-go 1.19
+go 1.22.0
+
+toolchain go1.23.2
 
 require (
 	github.com/ProtonMail/go-crypto v1.0.0
 	github.com/mholt/archiver/v4 v4.0.0-alpha.8
+	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
 )
 
 require (
