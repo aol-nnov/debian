@@ -1,4 +1,4 @@
-package deb
+package fields
 
 import (
 	"bytes"
@@ -9,19 +9,43 @@ import (
 )
 
 /*
-https://wiki.debian.org/BuildProfileSpec
+Build profile constraints as described in https://wiki.debian.org/BuildProfileSpec
 
+BNF descriptor:
+
+	<ProfileConstraints> ::= <AndSet> | <ProfileConstraints> " " <AndSet>
+	<AndSet> ::= "<" <andConstraints> ">"
+	<andConstraints> ::= <profileConstraint> | <andConstraints> " " <profileConstraint>
+	<profileConstraint> ::= <Negate> <Name>
+	<Negate> ::= E | "!"
+	<Name> ::= ([0-9] | [a-z] | [A-Z])+
+
+Example:
+
+	<p1 !p2> <p3 p4> === (p1 & !p2) | (p3 & p4)
+
+After unmarshalling
+
+		ProfileConstraints[0]: [p1, !p2]
+		ProfileConstraints[1]: [p3, p4]
+
+	    Total value of ProfileConstraints is calculated as follows: first dimension elements are OR-ed (||), second dimension elements are AND-ed (&&)
+
+[Online editor] for BNF checking and fiddling.
+
+[Online editor]: http://bnfplayground.pauliankline.com/?bnf=%3CProfileConstraints%3E%20%3A%3A%3D%20%3CAndSet%3E%20%7C%20%3CProfileConstraints%3E%20%22%20%22%20%3CAndSet%3E%0A%3CAndSet%3E%20%3A%3A%3D%20%22%3C%22%20%3CandConstraints%3E%20%22%3E%22%0A%3CandConstraints%3E%20%3A%3A%3D%20%3CprofileConstraint%3E%20%7C%20%3CandConstraints%3E%20%22%20%22%20%3CprofileConstraint%3E%0A%3CprofileConstraint%3E%20%3A%3A%3D%20%3CNegate%3E%20%3CName%3E%0A%3CNegate%3E%20%3A%3A%3D%20E%20%7C%20%22!%22%0A%3CName%3E%20%3A%3A%3D%20(%5B0-9%5D%20%7C%20%5Ba-z%5D%20%7C%20%5BA-Z%5D)%2B&name=Profile%20Constraints
 */
-// first dimension elements are or-ed (||), second dimension elements are and-ed (&&)
-type ProfileConstraints [][]ProfileConstraint
+type ProfileConstraints []andConstraints
+type andConstraints []profileConstraint
 
-type ProfileConstraint struct {
-	Name   string
+type profileConstraint struct {
 	Negate bool
+	Name   string
 }
 
-func unmarshalAndSet(text []byte) ([]ProfileConstraint, error) {
-	var res []ProfileConstraint
+// unmarshals byte slice to sets, that are AND-ed
+func unmarshalAndSet(text []byte) (andConstraints, error) {
+	var res andConstraints
 
 	profiles := bytes.Split(bytes.Trim(text, "<> "), []byte(" "))
 	for _, profile := range profiles {
@@ -29,7 +53,7 @@ func unmarshalAndSet(text []byte) ([]ProfileConstraint, error) {
 			continue
 		}
 
-		var pc ProfileConstraint
+		var pc profileConstraint
 		if err := pc.UnmarshalText(bytes.TrimSpace(profile)); err != nil {
 			return nil, err
 		}
@@ -40,9 +64,11 @@ func unmarshalAndSet(text []byte) ([]ProfileConstraint, error) {
 	return res, nil
 }
 
+// [pkg/encoding.TextUnmarshaler] implementation
 func (constraints *ProfileConstraints) UnmarshalText(text []byte) (err error) {
 	tail := bytes.TrimSpace(text)
-	if tail[0] != '<' {
+	if !bytes.HasPrefix(tail, []byte{'<'}) ||
+		!bytes.HasSuffix(tail, []byte{'>'}) {
 		return fmt.Errorf("ProfileConstraints unmarshal: wrong input string '%s'", text)
 	}
 
@@ -52,7 +78,7 @@ func (constraints *ProfileConstraints) UnmarshalText(text []byte) (err error) {
 
 		if andSet = bytes.TrimSpace(andSet); len(andSet) > 0 {
 
-			var andConstraints []ProfileConstraint
+			var andConstraints []profileConstraint
 			if andConstraints, err = unmarshalAndSet(andSet); err == nil {
 				*constraints = append(*constraints, ProfileConstraints{andConstraints}...)
 			} else {
@@ -64,7 +90,8 @@ func (constraints *ProfileConstraints) UnmarshalText(text []byte) (err error) {
 	return err
 }
 
-func (pc *ProfileConstraint) UnmarshalText(text []byte) (err error) {
+func (pc *profileConstraint) UnmarshalText(text []byte) (err error) {
+	//	fmt.Printf("unm prof '%s'\n", text)
 
 	if text[0] == '!' {
 		pc.Negate = true
@@ -77,7 +104,8 @@ func (pc *ProfileConstraint) UnmarshalText(text []byte) (err error) {
 	return nil
 }
 
-func (pc ProfileConstraint) String() string {
+// [pkg/fmt.Stringer] implementation
+func (pc profileConstraint) String() string {
 	not := ""
 
 	if pc.Negate {
@@ -87,6 +115,7 @@ func (pc ProfileConstraint) String() string {
 	return fmt.Sprintf("%s%s", not, pc.Name)
 }
 
+// [pkg/fmt.Stringer] implementation
 func (pc ProfileConstraints) String() string {
 	res := ""
 
@@ -102,6 +131,8 @@ func (pc ProfileConstraints) String() string {
 }
 
 /*
+Check
+
 truth table for comparing single profile with single ProfileConstraint:
 
 	neg -> pc.Negate
@@ -120,26 +151,25 @@ truth table for comparing single profile with single ProfileConstraint:
 
 	 (!neg && cmp) || (neg && !cmp) => unable to simplify
 */
+func (pc profileConstraint) satisfiedBy(activeProfiles []string) bool {
 
-func (pc ProfileConstraint) satisfies(profiles []string) bool {
+	fullySatisfied := pc.Negate
 
-	satisfies := pc.Negate
-
-	for _, profile := range profiles {
+	for _, profile := range activeProfiles {
 		constraintSatisfied := (!pc.Negate && pc.Name == profile) || (pc.Negate && !(pc.Name == profile))
 		// fmt.Printf("%v %v %v\n", pc, constraintSatisfied, profile)
 
 		if pc.Negate {
-			satisfies = satisfies && constraintSatisfied
+			fullySatisfied = fullySatisfied && constraintSatisfied
 		} else {
-			satisfies = satisfies || constraintSatisfied
+			fullySatisfied = fullySatisfied || constraintSatisfied
 		}
 	}
 
-	return satisfies
+	return fullySatisfied
 }
 
-func (orSet ProfileConstraints) Satisfies(activeProfiles []string) bool {
+func (orSet ProfileConstraints) SatisfiedBy(activeProfiles []string) bool {
 	/*
 		orSet: [ andSet || andSet || andSet]
 		andSet: [ profileConstraint && profileConstraint && profileConstraint ]
@@ -148,13 +178,13 @@ func (orSet ProfileConstraints) Satisfies(activeProfiles []string) bool {
 		return true
 	}
 
-	// groups are OR-ed
+	// `profileConstraint`-s stored in each item of `orSet` are OR-ed
 	for _, andSet := range orSet {
 		andSetSatisfies := true
 
 		// ProfileConstraint-s inside each group are and-ed
 		for _, profile := range andSet {
-			andSetSatisfies = andSetSatisfies && profile.satisfies(activeProfiles)
+			andSetSatisfies = andSetSatisfies && profile.satisfiedBy(activeProfiles)
 		}
 
 		// According to OR-operator truth table, if any of perands are truthy, result is truthy

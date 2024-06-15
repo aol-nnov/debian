@@ -1,10 +1,13 @@
-package deb
+package fields
 
 import "testing"
 
 func TestArch(t *testing.T) {
 
 	var a Architecture
+
+	a.UnmarshalText([]byte("all"))
+	t.Log(a)
 
 	a.UnmarshalText([]byte("any"))
 	t.Log(a)

@@ -1,12 +1,12 @@
-package deb
+package fields_test
 
 import (
 	"testing"
+
+	"github.com/aol-nnov/debian/fields"
 )
 
 func TestUnmarshalArch(t *testing.T) {
-	var ac ArchitectureConstraints
-
 	variants := [][]byte{
 		[]byte("[arch]"),
 		[]byte("   [  arch  ]  "),
@@ -18,8 +18,27 @@ func TestUnmarshalArch(t *testing.T) {
 	}
 
 	for _, v := range variants {
+		var ac fields.ArchitectureConstraints
 		if err := ac.UnmarshalText(v); err != nil {
-			t.Fatalf("failed to unmarshal '%s'", v)
+			t.Fatalf("failed to unmarshal '%s': %v", v, err)
+		}
+	}
+
+}
+
+func TestUnmarshalArchNegative(t *testing.T) {
+	variants := [][]byte{
+		[]byte("  [ arch     arch ] garbage"),
+		[]byte("qwe [arch]"),
+		[]byte("  a [  arch  ]  "),
+		[]byte("!arch"),
+		[]byte("[]"),
+	}
+
+	for _, v := range variants {
+		var ac fields.ArchitectureConstraints
+		if err := ac.UnmarshalText(v); err == nil {
+			t.Fatalf("must fail to unmarshal '%s'", v)
 		}
 	}
 
@@ -27,93 +46,93 @@ func TestUnmarshalArch(t *testing.T) {
 
 // 'arch' should satisfy 'arch'
 func TestAcEqualArch(t *testing.T) {
-	var ac ArchitectureConstraints
+	var ac fields.ArchitectureConstraints
 	err := ac.UnmarshalText([]byte("[arch]"))
 
-	if err != nil || !ac.Satisfies(MakeArch("arch")) {
+	if err != nil || !ac.SatisfiedBy(fields.MakeArch("arch")) {
 		t.Fatal(err)
 	}
 }
 
 // 'wildcard' should satisfy 'arch'
 func TestWildcardAcEqualArch(t *testing.T) {
-	var ac ArchitectureConstraints
+	var ac fields.ArchitectureConstraints
 	ac.UnmarshalText([]byte("[linux-any]"))
 
-	if !ac.Satisfies(MakeArch("amd64")) {
+	if !ac.SatisfiedBy(fields.MakeArch("amd64")) {
 		t.Fail()
 	}
 }
 
 // ['arch', 'arch2'] should NOT satisfy 'another'
 func TestAcAnotherArch(t *testing.T) {
-	var ac ArchitectureConstraints
-	var a Architecture
+	var ac fields.ArchitectureConstraints
+	var a fields.Architecture
 
 	ac.UnmarshalText([]byte("[arch arch2]"))
 	a.UnmarshalText([]byte("another"))
 
-	if ac.Satisfies(a) {
+	if ac.SatisfiedBy(a) {
 		t.Fail()
 	}
 }
 
 // '!arch' should NOT satisfy 'arch'
 func TestNegAcArch(t *testing.T) {
-	var ac ArchitectureConstraints
+	var ac fields.ArchitectureConstraints
 	ac.UnmarshalText([]byte("[!arch]"))
 
-	if ac.Satisfies(MakeArch("arch")) {
+	if ac.SatisfiedBy(fields.MakeArch("arch")) {
 		t.Fail()
 	}
 }
 
 // ['!kfreebsd-any', '!amd64'] should satisfy 'armhf'
 func TestNegWildcardAcArch(t *testing.T) {
-	var ac ArchitectureConstraints
+	var ac fields.ArchitectureConstraints
 	ac.UnmarshalText([]byte("[!kfreebsd-any !amd64]"))
 
-	if !ac.Satisfies(MakeArch("armhf")) {
+	if !ac.SatisfiedBy(fields.MakeArch("armhf")) {
 		t.Fail()
 	}
 }
 
 // ['!kfreebsd-any', 'amd64'] should satisfy 'armhf'
 func TestWildcardAcArchNoMatch(t *testing.T) {
-	var ac ArchitectureConstraints
+	var ac fields.ArchitectureConstraints
 	ac.UnmarshalText([]byte("[!kfreebsd-any amd64]"))
 
-	if !ac.Satisfies(MakeArch("armhf")) {
+	if !ac.SatisfiedBy(fields.MakeArch("armhf")) {
 		t.Fail()
 	}
 }
 
 // ['!kfreebsd-any', 'amd64'] should NOT satisfy 'kfreebsd-i386'
 func TestWildcardNegMatchAcArchNoMatch(t *testing.T) {
-	var ac ArchitectureConstraints
+	var ac fields.ArchitectureConstraints
 	ac.UnmarshalText([]byte("[!kfreebsd-any amd64]"))
 
-	if ac.Satisfies(MakeArch("kfreebsd-i386")) {
+	if ac.SatisfiedBy(fields.MakeArch("kfreebsd-i386")) {
 		t.Fail()
 	}
 }
 
 // ['!kfreebsd-any', 'amd64'] should satisfy 'amd64'
 func TestWildcardAcArchMatch(t *testing.T) {
-	var ac ArchitectureConstraints
+	var ac fields.ArchitectureConstraints
 	ac.UnmarshalText([]byte("[!kfreebsd-any amd64]"))
 
-	if !ac.Satisfies(MakeArch("amd64")) {
+	if !ac.SatisfiedBy(fields.MakeArch("amd64")) {
 		t.Fail()
 	}
 }
 
 // '!arch' should satisfy 'another'
 func TestNegAcAnotherArch(t *testing.T) {
-	var ac ArchitectureConstraints
+	var ac fields.ArchitectureConstraints
 	ac.UnmarshalText([]byte("[!arch]"))
 
-	if !ac.Satisfies(MakeArch("another")) {
+	if !ac.SatisfiedBy(fields.MakeArch("another")) {
 		t.Fail()
 	}
 }
@@ -123,10 +142,10 @@ func TestConstraintsSatisfy(t *testing.T) {
 
 	ac := []byte("[i386 amd64]")
 
-	var architectureConstraints ArchitectureConstraints
+	var architectureConstraints fields.ArchitectureConstraints
 	architectureConstraints.UnmarshalText(ac)
 
-	if !architectureConstraints.Satisfies(MakeArch("amd64")) {
+	if !architectureConstraints.SatisfiedBy(fields.MakeArch("amd64")) {
 		t.Fail()
 	}
 }
@@ -136,10 +155,10 @@ func TestConstraintsSatisfyReverse(t *testing.T) {
 
 	ac := []byte("[amd64 i386]")
 
-	var architectureConstraints ArchitectureConstraints
+	var architectureConstraints fields.ArchitectureConstraints
 	architectureConstraints.UnmarshalText(ac)
 
-	if !architectureConstraints.Satisfies(MakeArch("amd64")) {
+	if !architectureConstraints.SatisfiedBy(fields.MakeArch("amd64")) {
 		t.Fail()
 	}
 }
