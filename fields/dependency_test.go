@@ -1,4 +1,4 @@
-package deb
+package fields
 
 import (
 	"testing"
@@ -14,7 +14,7 @@ func TestDepencencyNoConstraint(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 
-	t.Log(d)
+	// t.Log(d)
 }
 
 func TestDepencencyVersion(t *testing.T) {
@@ -26,7 +26,7 @@ func TestDepencencyVersion(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 
-	t.Log(d)
+	// t.Log(d)
 }
 
 func TestDepencencyVerArch(t *testing.T) {
@@ -38,7 +38,23 @@ func TestDepencencyVerArch(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 
-	t.Log(d)
+	if d.Name != "pkgname" {
+		t.Fatal("Name")
+	}
+
+	if d.VersionConstraint.Op != VersionConstraintGreaterOrEqual {
+		t.Fatal("VersionConstraint.Op")
+	}
+
+	if d.VersionConstraint.Value.Compare(MakeVersion("1.2.3")) != VersionCompareResultEquals {
+		t.Fatal("Version")
+	}
+
+	if !d.ArchitectureConstraints.SatisfiedBy(MakeArch("arch")) {
+		t.Fatal("ArchitectureConstraints")
+	}
+
+	// t.Log(d)
 }
 
 func TestDepencencyArchProfiles(t *testing.T) {
@@ -50,7 +66,11 @@ func TestDepencencyArchProfiles(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 
-	t.Log(d)
+	if !d.ProfileConstraints.SatisfiedBy([]string{"another"}) {
+		t.Fatal("ProfileConstraints")
+	}
+
+	// t.Log(d)
 }
 
 func TestDepencencyVerProfiles(t *testing.T) {
@@ -62,7 +82,7 @@ func TestDepencencyVerProfiles(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 
-	t.Log(d)
+	// t.Log(d)
 
 }
 func TestDepencencyVerArchProfiles(t *testing.T) {
@@ -74,7 +94,7 @@ func TestDepencencyVerArchProfiles(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 
-	t.Log(d)
+	// t.Log(d)
 
 	if d.Name != "pkgname" ||
 		d.ArchQualifier != "native" ||

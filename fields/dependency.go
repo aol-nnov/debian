@@ -1,4 +1,4 @@
-package deb
+package fields
 
 import (
 	"bytes"
@@ -78,7 +78,7 @@ func (d *Dependency) UnmarshalText(text []byte) (err error) {
 				- "pkgname:qual"
 			 rest = "(>= 1.2.3) [arch] <!profile>"
 		*/
-		if versionConstraint, found, tail := strings.Between(rest, '(', ')', false); found {
+		if versionConstraint, found, tail := stringspp.Between(rest, '(', ')', false); found {
 			d.VersionConstraint = &VersionConstraint{}
 			if err = d.VersionConstraint.UnmarshalText(versionConstraint); err != nil {
 				return err
@@ -94,17 +94,17 @@ func (d *Dependency) UnmarshalText(text []byte) (err error) {
 			*/
 		}
 
-		if archConstraints, found, tail := strings.Between(rest, '[', ']', false); found {
+		if archConstraints, found, tail := stringspp.Between(rest, '[', ']', false); found {
 			d.ArchitectureConstraints.UnmarshalText(archConstraints)
 			rest = tail
 		}
 
-		if profileConstraints, found, _ := strings.Between(rest, '<', '>', true); found {
+		if profileConstraints, found, _ := stringspp.Between(rest, '<', '>', true); found {
 			d.ProfileConstraints.UnmarshalText(profileConstraints)
 		}
 	} else { // pkg name without constraints
 		d.Name = string(text)
-		d.ArchitectureConstraints = make([]ArchitectureConstraint, 0)
+		d.ArchitectureConstraints = make([]architectureConstraint, 0)
 		// d.ProfileConstraints = make([]ProfileConstraint, 0)
 	}
 
@@ -132,8 +132,8 @@ This somewhat confusing terminology is GNU's fault. :clown_face:
 */
 func (dep Dependency) Satisfies(buildArch Architecture, hostArch Architecture, profiles []string) bool {
 	dc := true
-	ac := dep.ArchitectureConstraints.Satisfies(hostArch)
-	pc := dep.ProfileConstraints.Satisfies(profiles)
+	ac := dep.ArchitectureConstraints.SatisfiedBy(hostArch)
+	pc := dep.ProfileConstraints.SatisfiedBy(profiles)
 
 	// fmt.Printf("%s: ac %v, pc %v\n", dep.Name, ac, pc)
 	return dc && ac && pc
