@@ -1,0 +1,134 @@
+Source: debusine
+Section: devel
+Priority: optional
+Maintainer: Raphaël Hertzog <raphael@freexian.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-python,
+ pybuild-plugin-pyproject,
+ dh-sequence-sphinxdoc,
+ python3,
+ python3-coverage,
+ python3-setuptools,
+ python3-sphinx,
+ python3-dateutil,
+ python3-django (>= 2:3.2),
+ python3-django-channels,
+ python3-djangorestframework,
+ python3-psycopg2,
+ python3-sphinx-rtd-theme,
+ postgresql,
+ redis-server,
+ python3-daphne,
+ python3-jsonschema,
+ python3-responses,
+ python3-yaml,
+ python3-tabulate,
+ python3-channels-redis,
+ python3-pydantic,
+ python3-aiohttp,
+ python3-psutil,
+ python3-requests-oauthlib,
+ python3-jwcrypto,
+ libjs-jquery-throttle-debounce,
+ libjs-jquery-isonscreen,
+ libjs-jquery-tablesorter,
+ python3-doc,
+ python3-debian,
+ graphviz,
+Standards-Version: 4.6.1
+Homepage: https://salsa.debian.org/freexian-team/debusine
+Vcs-Browser: https://salsa.debian.org/freexian-team/debusine
+Vcs-Git: https://salsa.debian.org/freexian-team/debusine.git
+Rules-Requires-Root: no
+
+Package: python3-debusine
+Architecture: all
+Section: python
+Depends:
+ ${python3:Depends},
+ ${misc:Depends},
+Description: Main Python library for debusine
+ Debusine is a general purpose software factory tailored to the needs of a
+ Debian-based distribution.
+ .
+ This package contains most of the Python libraries.
+
+Package: python3-debusine-server
+Architecture: all
+Section: python
+Depends:
+ ${python3:Depends},
+ python3-debusine (= ${source:Version}),
+ python3-django (>= 2:3.2),
+ python3-daphne,
+ ${misc:Depends},
+Description: Server part of the Python library for debusine
+ Debusine is a general purpose software factory tailored to the needs of a
+ Debian-based distribution.
+ .
+ This package contains the server related part of the Python libraries.
+
+Package: debusine-server
+Architecture: all
+Depends:
+ ${python3:Depends},
+ python3-debusine-server (= ${source:Version}),
+ daphne,
+ adduser,
+ ${misc:Depends},
+Recommends:
+ default-mta | mail-transport-agent,
+ nginx-core | httpd,
+ postgresql,
+ redis-server,
+Description: Services to run a debusine server
+ Debusine is a general purpose software factory tailored to the needs of a
+ Debian-based distribution.
+ .
+ This package provides all the required services to run a debusine server.
+
+Package: debusine-client
+Architecture: all
+Depends:
+ ${python3:Depends},
+ python3-debusine (= ${source:Version}),
+ ${misc:Depends},
+Description: Command line client to interact with a debusine server
+ Debusine is a general purpose software factory tailored to the needs of a
+ Debian-based distribution.
+ .
+ This package provides the command line client used to interact with a
+ debusine server.
+
+Package: debusine-worker
+Architecture: all
+Depends:
+ ${python3:Depends},
+ python3-debusine (= ${source:Version}),
+ adduser,
+ sbuild,
+ libwww-perl,
+ schroot,
+ ${misc:Depends},
+Description: Standalone daemon handling work requests for a debusine server
+ Debusine is a general purpose software factory tailored to the needs of a
+ Debian-based distribution.
+ .
+ This package provides the services to run a debusine worker executing work
+ requests sent by a debusine server.
+
+Package: debusine-doc
+Architecture: all
+Built-Using: ${sphinxdoc:Built-Using},
+Section: doc
+Depends:
+ ${misc:Depends},
+ ${sphinxdoc:Depends},
+Description: Documentation for debusine
+ Debusine is a general purpose software factory tailored to the needs of a
+ Debian-based distribution.
+ .
+ The documentation includes end-user documentation (how to use), administrator
+ documentation (how to setup) and developer documentation (how to contribute,
+ design and API).
