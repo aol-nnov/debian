@@ -4,29 +4,24 @@ import "testing"
 
 func TestArch(t *testing.T) {
 
-	var a Architecture
+	cases := [][]byte{
+		[]byte("all"),
+		[]byte("any"),
+		[]byte("linux-any"),
+		[]byte("amd64"),
+		[]byte("musl-linux-arm64"),
+		[]byte("arch"),
+	}
 
-	a.UnmarshalText([]byte("all"))
-	t.Log(a)
-
-	a.UnmarshalText([]byte("any"))
-	t.Log(a)
-
-	a.UnmarshalText([]byte("linux-any"))
-	t.Log(a)
-
-	a.UnmarshalText([]byte("amd64"))
-	t.Log(a)
-
-	a.UnmarshalText([]byte("musl-linux-arm64"))
-	t.Log(a)
-
-	a.UnmarshalText([]byte("arch"))
-	t.Log(a)
-
-	s, _ := a.MarshalText()
-	t.Log(string(s))
-
+	for _, tc := range cases {
+		t.Run(string(tc), func(t *testing.T) {
+			var a Architecture
+			a.UnmarshalText(tc)
+			if a.String() != string(tc) {
+				t.Fatalf("%s != %s", a.String(), tc)
+			}
+		})
+	}
 }
 
 func TestEqualsDifferent(t *testing.T) {

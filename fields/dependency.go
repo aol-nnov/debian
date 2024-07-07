@@ -52,6 +52,7 @@ type Dependency struct {
 	ProfileConstraints      ProfileConstraints
 	ArchitectureConstraints ArchitectureConstraints
 	Alt                     *Dependency
+	raw                     string // for templated dependency in control file like ${python3:Depends}
 }
 
 var altSeparator = []byte{'|'}
@@ -137,26 +138,4 @@ func (dep Dependency) Satisfies(buildArch Architecture, hostArch Architecture, p
 
 	// fmt.Printf("%s: ac %v, pc %v\n", dep.Name, ac, pc)
 	return dc && ac && pc
-}
-
-func (d Dependencies) For(buildArch Architecture, hostArch Architecture, profiles []string) Dependencies {
-	var res Dependencies
-
-	for _, dep := range d {
-		if dep.Satisfies(buildArch, hostArch, profiles) {
-			res = append(res, dep)
-		}
-	}
-	return res
-}
-
-func (d Dependencies) NamesFor(buildArch Architecture, hostArch Architecture, profiles []string) []string {
-	var res []string
-
-	for _, dep := range d {
-		if dep.Satisfies(buildArch, hostArch, profiles) {
-			res = append(res, dep.Name)
-		}
-	}
-	return res
 }

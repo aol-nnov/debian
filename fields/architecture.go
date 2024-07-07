@@ -1,9 +1,5 @@
 package fields
 
-import (
-	"bytes"
-)
-
 const (
 	VerAbi int = iota
 	VerLibc
@@ -60,65 +56,6 @@ func (a Architecture) Os() string {
 // Cpu part getter
 func (a Architecture) Cpu() string {
 	return a.raw[VerCpu]
-}
-
-var (
-	allArch = []byte("all")
-)
-
-// [pkg/encoding.TextUnmarshaler] interface implementation
-func (a *Architecture) UnmarshalText(text []byte) (err error) {
-	// initialize internal structure with corresponding wildcard first
-	// `all`` Architecture is arch-indep wildcard (full form all-all-all-all)
-	// `any` is binary arch wildcard
-	defaultVal := "any"
-	if bytes.Equal(text, allArch) {
-		defaultVal = "all"
-	}
-
-	for rawIdx := VerAbi; rawIdx <= VerCpu; rawIdx++ {
-		a.raw[rawIdx] = defaultVal
-	}
-
-	// tokenize string to 4 tokens at most (may be less, if short form is provided)
-	specs := bytes.SplitN(text, []byte{'-'}, 4)
-
-	specIdx := len(specs) - 1
-	rawIdx := VerCpu
-
-	// fill the internal structure starting from VerCpu, overrriding default values with actual ones
-	for specIdx >= 0 {
-		a.raw[rawIdx] = string(specs[specIdx])
-
-		specIdx--
-		rawIdx--
-	}
-
-	// set debian implications for the shortest form, i.e. amd64
-	if len(specs) == 1 {
-		a.raw[VerAbi] = "gnu"
-		a.raw[VerOs] = "linux"
-	}
-
-	return nil
-}
-
-// [pkg/encoding.TextMarshaler] interface implementation
-func (a Architecture) MarshalText() (text []byte, err error) {
-	return []byte(a.String()), nil
-}
-
-// [pkg/fmt.Stringer] interface implementations
-func (a Architecture) String() string {
-	res := ""
-
-	for rawIdx := VerAbi; rawIdx <= VerOs; rawIdx++ {
-		if a.raw[rawIdx] != "any" {
-			res += a.raw[rawIdx] + "-"
-		}
-	}
-
-	return res + a.raw[VerCpu]
 }
 
 // Compares two `Architecture`s. (Wildcard comparison included)

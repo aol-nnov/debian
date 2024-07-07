@@ -1,11 +1,5 @@
 package fields
 
-import (
-	"bytes"
-	"fmt"
-	"strconv"
-)
-
 /*
 Represents Debian package version number format
 
@@ -62,6 +56,9 @@ type Version struct {
 		(but note that the debian_revision is the least significant part of the version number).
 	*/
 	DebianVersion string
+
+	// for templated version in control file like ${source:Version}
+	raw string
 }
 
 func MakeVersion(v string) Version {
@@ -71,55 +68,8 @@ func MakeVersion(v string) Version {
 	return res
 }
 
-// String representation of Version struct
-func (v Version) String() string {
-	res := ""
-	if v.Epoch > 0 {
-		res = fmt.Sprintf("%d:", v.Epoch)
-	}
-	res += v.UpstreamVersion
-
-	if v.DebianVersion != "" {
-		res += "-" + v.DebianVersion
-	}
-
-	return res
-}
-
-func (v *Version) UnmarshalText(text []byte) (err error) {
-	var epoch, rest []byte
-	var found bool
-
-	text = bytes.TrimSpace(text)
-
-	if epoch, rest, found = bytes.Cut(text, []byte{':'}); found {
-		if v.Epoch, err = strconv.Atoi(string(epoch)); err != nil {
-			return fmt.Errorf("Version: Epoch format error")
-		}
-	} else {
-		rest = epoch
-	}
-
-	upstreamVer, debVer, _ := bytes.Cut(rest, []byte{'-'})
-
-	if !cisdigit(rune(upstreamVer[0])) {
-		return fmt.Errorf("Version: UpstreamVersion must start with a number")
-	}
-	v.UpstreamVersion = string(upstreamVer)
-	v.DebianVersion = string(debVer)
-	return
-}
-
-type VersionCompareResult int
-
-const (
-	VersionCompareResultLessThan VersionCompareResult = iota - 1
-	VersionCompareResultEquals
-	VersionCompareResultGreaterThan
-)
-
-func (c VersionCompareResult) String() string {
-	return [...]string{"<<", "=", ">>"}[c+1]
+func (v Version) Less(another Version) bool {
+	return v.Compare(another) == VersionCompareResultLessThan
 }
 
 /*
@@ -149,6 +99,10 @@ strings of letters which the package management system cannot interpret (such as
 orderings.
 */
 func (v Version) Compare(another Version) VersionCompareResult {
+	if v.raw != "" || another.raw != "" {
+		return VersionCompareResultNonComparable
+	}
+
 	if v.Epoch > another.Epoch {
 		return VersionCompareResultGreaterThan
 	}
@@ -162,90 +116,4 @@ func (v Version) Compare(another Version) VersionCompareResult {
 	}
 
 	return verrevcmp(v.DebianVersion, another.DebianVersion)
-}
-
-func (v Version) Less(another Version) bool {
-	return v.Compare(another) == VersionCompareResultLessThan
-}
-
-func cisdigit(r rune) bool {
-	return r >= '0' && r <= '9'
-}
-
-func cisalpha(r rune) bool {
-	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')
-}
-
-func order(r rune) int {
-	if cisdigit(r) {
-		return 0
-	}
-	if cisalpha(r) {
-		return int(r)
-	}
-	if r == '~' {
-		return -1
-	}
-	if int(r) != 0 {
-		return int(r) + 256
-	}
-	return 0
-}
-
-func intToVersionCompareResult(in int) VersionCompareResult {
-	if in < 0 {
-		return VersionCompareResultLessThan
-	} else {
-		return VersionCompareResultGreaterThan
-	}
-}
-
-func verrevcmp(a string, b string) VersionCompareResult {
-	i := 0
-	j := 0
-	for i < len(a) || j < len(b) {
-		var first_diff int
-		for (i < len(a) && !cisdigit(rune(a[i]))) ||
-			(j < len(b) && !cisdigit(rune(b[j]))) {
-			ac := 0
-			if i < len(a) {
-				ac = order(rune(a[i]))
-			}
-			bc := 0
-			if j < len(b) {
-				bc = order(rune(b[j]))
-			}
-			if ac != bc {
-				return intToVersionCompareResult(ac - bc)
-			}
-			i++
-			j++
-		}
-
-		for i < len(a) && a[i] == '0' {
-			i++
-		}
-		for j < len(b) && b[j] == '0' {
-			j++
-		}
-
-		for i < len(a) && cisdigit(rune(a[i])) && j < len(b) && cisdigit(rune(b[j])) {
-			if first_diff == 0 {
-				first_diff = int(rune(a[i]) - rune(b[j]))
-			}
-			i++
-			j++
-		}
-
-		if i < len(a) && cisdigit(rune(a[i])) {
-			return VersionCompareResultGreaterThan
-		}
-		if j < len(b) && cisdigit(rune(b[j])) {
-			return VersionCompareResultLessThan
-		}
-		if first_diff != 0 {
-			return intToVersionCompareResult(first_diff)
-		}
-	}
-	return VersionCompareResultEquals
 }
