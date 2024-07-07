@@ -84,3 +84,5 @@ Temporary Items
 # symlink for local godoc server
 # https://stackoverflow.com/a/68309436
 src
+repo/test
+musings*

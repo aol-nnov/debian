@@ -9,10 +9,10 @@ Represents Debian package version number format
 
 BNF descriptor:
 
-	<Version> ::= (<Epoch> ":")? <UpstreamVersion> ("-" <DebianVersion>)?
+	<Version> ::= (<Epoch> ":")? (<UpstreamVersion> "-")? <DebianRevision>
 	<Epoch> ::= <Num>+
 	<UpstreamVersion> ::= <VersionPart> | <UpstreamVersion>  <Separator> (<Num> | <Alpha>)+
-	<DebianVersion> ::= <VersionPart> | <UpstreamVersion>  <Separator> (<Num> | <Alpha>)+
+	<DebianRevision> ::= <VersionPart> | <DebianRevision>  <Separator> (<Num> | <Alpha>)+
 	<VersionPart> ::= <Num> (<Num> | <Alpha>)*
 	<Num> ::= [0-9]
 	<Alpha> ::= ([A-Z] | [a-z])
@@ -39,6 +39,9 @@ type Version struct {
 		The upstream_version may contain only alphanumerics ("A-Za-z0-9") and the characters . + - : ~ (full stop,
 		plus, hyphen, colon, tilde) and should start with a digit. If there is no debian_revision then hyphens are
 		not allowed; if there is no epoch then colons are not allowed.
+
+		Из вышенаписанного делаю вывод, что : используется для отделения epoch от версии, а - для отделения UpstreamVersion от DebianRevision. Следовательно, для различных "модифиваторов" остаются ~ и +.
+		Например ~N.gpp<commit_sha>, +bN или +nmuN
 	*/
 	UpstreamVersion string
 
@@ -55,7 +58,9 @@ type Version struct {
 		upstream_version and debian_revision. The absence of a debian_revision compares earlier than the presence of one
 		(but note that the debian_revision is the least significant part of the version number).
 	*/
-	DebianVersion string
+	DebianRevision string
+
+	Modificators VersionModificators
 
 	// for templated version in control file like ${source:Version}
 	raw string
@@ -68,52 +73,14 @@ func MakeVersion(v string) Version {
 	return res
 }
 
-func (v Version) Less(another Version) bool {
-	return v.Compare(another) == VersionCompareResultLessThan
+func (v *Version) IsNative() bool {
+	return v.DebianRevision == ""
 }
 
-/*
-Compares two debian `Version`s
+func (v *Version) IsQuilt() bool {
+	return v.DebianRevision != ""
+}
 
-The `upstream_version` and `debian_revision` parts are compared by the package management system using the same algorithm:
-
-1. The strings are compared from left to right.
-
-2. First the initial part of each string consisting entirely of non-digit characters is determined. These two parts (one of
-which may be empty) are compared lexically. If a difference is found it is returned. The lexical comparison is a
-comparison of ASCII values modified so that all the letters sort earlier than all the non-letters and so that a tilde
-sorts before anything, even the end of a part. For example, the following parts are in sorted order: '~~', '~~a', '~',
-the empty part, 'a'.
-
-3. Then the initial part of the remainder of each string which consists entirely of digit characters is determined. The
-numerical values of these two parts are compared, and any difference found is returned as the result of the comparison.
-For these purposes an empty string (which can only occur at the end of one or both version strings being compared)
-counts as zero.
-
-4. These two steps (comparing and removing initial non-digit strings and initial digit strings) are repeated until a
-difference is found or both strings are exhausted.
-
-*Note* that the purpose of epochs is to allow us to leave behind mistakes in version numbering, and to cope with
-situations where the version numbering scheme changes. It is not intended to cope with version numbers containing
-strings of letters which the package management system cannot interpret (such as 'ALPHA' or 'pre-'), or with silly
-orderings.
-*/
-func (v Version) Compare(another Version) VersionCompareResult {
-	if v.raw != "" || another.raw != "" {
-		return VersionCompareResultNonComparable
-	}
-
-	if v.Epoch > another.Epoch {
-		return VersionCompareResultGreaterThan
-	}
-	if v.Epoch < another.Epoch {
-		return VersionCompareResultLessThan
-	}
-
-	rc := verrevcmp(v.UpstreamVersion, another.UpstreamVersion)
-	if rc != VersionCompareResultEquals {
-		return rc
-	}
-
-	return verrevcmp(v.DebianVersion, another.DebianVersion)
+func (v *Version) NewEpoch() {
+	v.Epoch++
 }

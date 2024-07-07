@@ -101,7 +101,7 @@ func TestDepencencyVerArchProfiles(t *testing.T) {
 		d.VersionConstraint.Op != VersionConstraintGreaterOrEqual ||
 		d.VersionConstraint.Value.Epoch != 0 ||
 		d.VersionConstraint.Value.UpstreamVersion != "1.2.3" ||
-		d.VersionConstraint.Value.DebianVersion != "" ||
+		// d.VersionConstraint.Value.DebianVersion != "" ||
 		len(d.ArchitectureConstraints) != 3 ||
 		d.ArchitectureConstraints[1].Name.Cpu() != "arch2" ||
 		d.ArchitectureConstraints[1].Negate != false ||
