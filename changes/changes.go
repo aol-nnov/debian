@@ -19,11 +19,11 @@ type Changes struct {
 	Distribution string
 	Urgency      string
 	Maintainer   string
-	ChangedBy    string `control:"Changed-By"`
+	ChangedBy    string `deb822:"Changed-By"`
 	Description  string
 	Changes      string
-	Sha1Files    []ChecksummedFile `control:"Checksums-Sha1" delim:"\n" s_trip:" \n"`
-	Sha256Files  []ChecksummedFile `control:"Checksums-Sha256" delim:"\n" s_trip:" \n"`
+	Sha1Files    []ChecksummedFile `deb822:"Checksums-Sha1" delim:"\n" s_trip:" \n"`
+	Sha256Files  []ChecksummedFile `deb822:"Checksums-Sha256" delim:"\n" s_trip:" \n"`
 	Files        []ChangesFile     `delim:"\n" s_trip:" \n"`
 }
 

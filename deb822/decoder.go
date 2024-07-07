@@ -7,7 +7,7 @@ This decoder follows `encoding` package principles. It also supports `TextUnmars
 
 Following struct tags are supported:
 
-  - `control:"field-name"` - denotes debian control field name to be decoded into the struct field. Use minus sign to ignore the field;
+  - `deb822:"field-name"` - denotes debian control field name to be decoded into the struct field. Use minus sign to ignore the field;
 
   - `required:"true|false"` - denotes a required field, default false. If field is missing, decoding fails;
 
@@ -119,11 +119,6 @@ func (d *Decoder) readStanza() bool {
 
 			// TrimFunc(line[1:], unicode.IsSpace) is identical to calling TrimSpace.
 			line = strings.TrimRightFunc(line[1:], unicode.IsSpace)
-
-			if line == "." {
-				// continuation line with a dot denotes empty paragraph
-				line = "\n"
-			}
 
 			if d.stanza[lastKey] == "" {
 				d.stanza[lastKey] = line + "\n"

@@ -20,16 +20,16 @@ type SourceIndex struct {
 }
 
 type SourceIndexItem struct {
-	Name    string         `control:"Package"`
+	Name    string         `deb822:"Package"`
 	Binary  []string       `delim:"," strip:" " required:"true"`
 	Version fields.Version `required:"true"`
 
-	BuildDepends      fields.Dependencies `control:"Build-Depends" delim:"," strip:" "`
-	BuildDependsArch  fields.Dependencies `control:"Build-Depends-Arch" delim:"," strip:" "`
-	BuildDependsIndep fields.Dependencies `control:"Build-Depends-Indep" delim:"," strip:" "`
+	BuildDepends      fields.Dependencies `deb822:"Build-Depends" delim:"," strip:" "`
+	BuildDependsArch  fields.Dependencies `deb822:"Build-Depends-Arch" delim:"," strip:" "`
+	BuildDependsIndep fields.Dependencies `deb822:"Build-Depends-Indep" delim:"," strip:" "`
 
 	Architecture []fields.Architecture `required:"true" delim:" " strip:" "`
-	// StandardsVersion string `control:"Standards-Version"`
+	// StandardsVersion string `deb822:"Standards-Version"`
 	// Format  string
 }
 

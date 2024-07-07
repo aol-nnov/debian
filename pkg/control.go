@@ -9,7 +9,7 @@ import (
 )
 
 type binaryPackageInSrc struct {
-	Name         string              `control:"Package" required:"true"`
+	Name         string              `deb822:"Package" required:"true"`
 	Architecture fields.Architecture `required:"true"`
 	Section      string              `recommended:"true"`
 	Priority     string              `recommended:"true"`
@@ -19,14 +19,14 @@ type binaryPackageInSrc struct {
 	Recommends []string `delim:"," strip:"\n "`
 	Suggests   []string `delim:"," strip:"\n "`
 	Enhances   []string `delim:"," strip:"\n "`
-	PreDepends []string `control:"Pre-Depends" delim:"," strip:"\n "`
+	PreDepends []string `deb822:"Pre-Depends" delim:"," strip:"\n "`
 
 	Description string `required:"true"`
 	Homepage    string
 
 	Provides []string `delim:"," strip:"\n "`
 
-	MultiArch fields.MultiArch `control:"Multi-Arch"`
+	MultiArch fields.MultiArch `deb822:"Multi-Arch"`
 }
 
 type Control struct {

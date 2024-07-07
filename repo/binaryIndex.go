@@ -15,11 +15,11 @@ type BinaryIndex struct {
 }
 
 type BinaryIndexItem struct {
-	Name           string   `control:"Package" required:"true"`
+	Name           string   `deb822:"Package" required:"true"`
 	Provides       []string `delim:"," strip:" "`
 	Source         string   `if_missing:"Package"`
-	InstalledSize  int      `control:"Installed-Size"`
-	DescriptionMd5 string   `control:"Description-md5"`
+	InstalledSize  int      `deb822:"Installed-Size"`
+	DescriptionMd5 string   `deb822:"Description-md5"`
 	Filename       string
 	Size           int
 	MD5sum         string

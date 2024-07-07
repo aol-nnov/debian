@@ -27,8 +27,8 @@ func decodeStruct(s stanza, into reflect.Value) error {
 
 		// Get the name of the field as we'd index into the [stanza]
 		fieldName := fieldType.Name
-		if it := fieldType.Tag.Get("control"); it != "" {
-			fieldName = it
+		if name, _ := parseTag(fieldType.Tag.Get("deb822")); name != "" {
+			fieldName = name
 		}
 
 		if fieldName == "-" {

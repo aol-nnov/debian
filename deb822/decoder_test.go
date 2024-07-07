@@ -43,7 +43,7 @@ Priority: optional
 	}
 
 	// Output:
-	// 	{first devel optional}
+	// {first devel optional}
 	// {second devel optional}
 }
 
@@ -55,6 +55,7 @@ Priority: optional
 Source: second
 Section: devel
 Priority: optional
+
 `
 	type Result struct {
 		Source, Section, Priority string
@@ -70,6 +71,6 @@ Priority: optional
 	}
 
 	// Output:
-	// 	{first devel optional}
+	// {first devel optional}
 	// {second devel optional}
 }

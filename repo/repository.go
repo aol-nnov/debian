@@ -19,8 +19,8 @@ type Repository struct {
 	Codename                    string
 	Changelogs                  string
 	Date                        string
-	AcquireByHash               bool     `control:"Acquire-By-Hash"`
-	NoSupportforArchitectureall string   `control:"No-Support-for-Architecture-all"`
+	AcquireByHash               bool     `deb822:"Acquire-By-Hash"`
+	NoSupportforArchitectureall string   `deb822:"No-Support-for-Architecture-all"`
 	Architectures               []string `delim:" "`
 	Components                  []string `delim:" "`
 	Description                 string
