@@ -1,0 +1,42 @@
+pkg-name (3.2.16) next; urgency=medium
+
+  [ Author1 ]
+  * Добавлен слот шины для инициализации плагинов микшера
+
+  SrcRef: deadbeef
+
+ -- Package Maintainer <pkg-maint@example.net>  Mon, 19 Dec 2022 11:50:13 +0000
+
+pkg-name (3.2.15) next; urgency=medium
+
+  [ Author2 ]
+  * Исправлен вызов клиента на нестандартный порт
+
+ -- Package Maintainer <pkg-maint@example.net>  Thu, 15 Dec 2022 17:27:01 +0000
+
+pkg-name (3.2.14) next; urgency=medium
+
+  [ Author2 ]
+  * Конфигурирование видеосвязи
+
+ -- Package Maintainer <pkg-maint@example.net>  Thu, 30 Jun 2022 15:27:46 +0000
+
+pkg-name (3.2.13) next; urgency=medium
+
+  [ Author2 ]
+  * Добавлены новые параметры аккаунта
+
+ -- Package Maintainer <pkg-maint@example.net>  Wed, 24 Nov 2021 07:57:06 +0000
+
+pkg-name (3.2.12) next; urgency=medium
+
+  * UNRELEASED
+
+ -- Package Maintainer <pkg-maint@example.net>  Mon, 02 Aug 2021 15:55:46 +0000
+
+pkg-name (3.2.11) next; urgency=medium
+
+  [ Author2 ]
+  * Добавлены новые методы для управления VAD
+
+ -- Package Maintainer <pkg-maint@example.net>  Fri, 04 Jun 2021 13:39:46 +0000
