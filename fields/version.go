@@ -40,8 +40,9 @@ type Version struct {
 		plus, hyphen, colon, tilde) and should start with a digit. If there is no debian_revision then hyphens are
 		not allowed; if there is no epoch then colons are not allowed.
 
-		Из вышенаписанного делаю вывод, что : используется для отделения epoch от версии, а - для отделения UpstreamVersion от DebianRevision. Следовательно, для различных "модифиваторов" остаются ~ и +.
-		Например ~N.gpp<commit_sha>, +bN или +nmuN
+		From the above I conclude that : is used to separate epoch from version, and - is used to separate
+		UpstreamVersion from DebianRevision. Therefore, for different "modifiers" ~ and + remain.
+		For example ~N.gpp<commit_sha>, +bN or +nmuN
 	*/
 	UpstreamVersion string
 

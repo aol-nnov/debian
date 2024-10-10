@@ -77,9 +77,10 @@ func TestCompareGbpSnapshot(t *testing.T) {
 	}
 }
 
-// тест появился в результате отладки [verrevcmp], которая раньше возвращала разницу (в числах) между версиями, а не
-// fields.VersionCompareResult, т.е. [-1, 0, 1], в результате вызов String() для него приводил к выходу за границу
-// массива, а сам алгоритм сравнения работал не верно, например, будучи примененным в [pkg/slices.Sort]
+// This test was created during debugging of [verrevcmp], which used to return the difference (in numbers) between
+// versions, rather than fields.VersionCompareResult, i.e. [-1, 0, 1], as a result, calling String() on it resulted in
+// addressing out of array bounds, which led to comparison algorithm malfunction, for example, when applied to
+// [pkg/slices.Sort]
 func TestCompareBigDifference(t *testing.T) {
 	v1 := fields.MakeVersion("1.0.38")
 	v2 := fields.MakeVersion("1.0.36")
