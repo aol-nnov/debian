@@ -82,7 +82,7 @@ func (d *Decoder) readAndDecodeStanza(entry *Entry) bool {
 				d.state = doneTrailer
 			}
 		case doneTrailer:
-			if line == "\n" {
+			if line == "\n" || d.atEOF {
 				d.state = idle
 			} else {
 				d.err = fmt.Errorf("changelog format error: missing trailer separator")
