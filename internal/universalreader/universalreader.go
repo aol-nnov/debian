@@ -1,13 +1,14 @@
 package universalreader
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strings"
 
-	"github.com/mholt/archiver/v4"
+	"github.com/mholt/archives"
 )
 
 func New(src string) (io.Reader, error) {
@@ -42,12 +43,12 @@ func New(src string) (io.Reader, error) {
 		}
 	}
 
-	if format, input, err := archiver.Identify("", srcReader); err != nil {
+	if format, input, err := archives.Identify(context.TODO(), "", srcReader); err != nil {
 		// format not detected (i.e. file is not compressed)
 		return input, nil
 	} else {
 		// fmt.Printf("%s %v\n", format.Name(), input)
-		if decompressor, ok := format.(archiver.Decompressor); ok {
+		if decompressor, ok := format.(archives.Decompressor); ok {
 			return decompressor.OpenReader(input)
 		}
 	}
