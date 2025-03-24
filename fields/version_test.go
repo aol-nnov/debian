@@ -179,3 +179,12 @@ func TestNativeVsDebian(t *testing.T) {
 
 	fmt.Printf("%v %v %v\n", v1, v1.Compare(v2), v2)
 }
+
+func ExampleVersion_Bump_threeDigit() {
+	v1 := fields.MakeVersion("2.9.1")
+	v1.Bump(fields.ChangeImpactMinor)
+	fmt.Println(v1)
+
+	// Output:
+	// 2.10.0
+}
