@@ -96,10 +96,6 @@ func (c *Changelog) SkipSnapshotOrDistribution(extraDistributionsToSkip []string
 	distributionsToSkip := []string{"UNRELEASED"}
 	distributionsToSkip = append(distributionsToSkip, extraDistributionsToSkip...)
 
-	if err := c.decoder.Decode(&c.lastParsed); err != nil {
-		return err
-	}
-
 	// start peeking records and skip not needed ones
 	for c.lastParsed.Version.IsMod() == fields.VersionModSnapshot ||
 		slices.Contains(distributionsToSkip, c.lastParsed.Distribution) {
