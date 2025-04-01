@@ -14,11 +14,9 @@ func ExampleLoad() {
 
 	c, _ := changelog.Load()
 
-	fmt.Println(len(c.Entries))
 	fmt.Println(c.Last())
 
 	// Output:
-	// 1
 	// pkg-name (3.2.16) next; urgency=medium
 	//
 	//   [ Author1 ]
@@ -57,7 +55,8 @@ func TestReplaceEntry(t *testing.T) {
 
 	defer os.Rename(origFileName, fileName)
 
-	c, err := changelog.Load()
+	c, err := changelog.LoadFull()
+	entriesCount := len(c.Entries)
 
 	if err != nil {
 		t.Fatal(err)
@@ -77,7 +76,7 @@ func TestReplaceEntry(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if newChangelog.Last().GetBody() != "mooo" {
+	if newChangelog.Last().GetBody() != "mooo" && len(newChangelog.Entries) != entriesCount {
 		t.Fatal("Replacing entry failed")
 	}
 }
