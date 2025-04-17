@@ -130,7 +130,8 @@ func (si SourceIndex) BuildOrder() (topologicalOrder []string, missing []string,
 
 		pkg := si.Packages[si.byName[pkgName][0]]
 
-		for _, binDependency := range pkg.BuildDepends {
+		allDepends := slices.Concat(pkg.BuildDepends, pkg.BuildDependsArch, pkg.BuildDependsIndep)
+		for _, binDependency := range allDepends {
 			if srcDep, found := si.FindByBinaryName(binDependency.Name); found {
 				pkgDeps[pkgName] = append(pkgDeps[pkgName], srcDep.Name)
 				indegree[srcDep.Name]++
